@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+<body>
+    <canvas id = "canvas" width = "600" height = "600">
+        
+    </canvas>
+    <button onclick="reset()"> New Game</button>
+    <script>
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+
+var donut = new Image();
+donut.src = "donut.webp";
+
+var hotdog = new Image();
+hotdog.src = "hotdog.png";
+
+var lastClickedTileX = -1;
+var lastClickedTileY = -1;
+
+var playerTurn = false;
+var tileW = canvas.width/3;
+var tileH = canvas.height/3;
+
+var board = [
+  [0, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0]
+];
+
+function reset(){
+    playerTurn = false;
+    board = [
+  [0, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0]];
+}
+
+function renderScreen(){
+    ctx.lineWidth = 5;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for(let i = 1; i < 3; i++){
+        ctx.beginPath();
+        ctx.moveTo(i * tileW, 0);
+        ctx.lineTo(i * tileW, canvas.height);
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.moveTo(0, i * tileH);   
+        ctx.lineTo(canvas.width, i * tileH);
+        ctx.stroke();
+        ctx.closePath();
+    }
+
+    for(let i = 0; i < 3; i++){
+        for(let j = 0; j < 3; j++){
+            if(board[i][j] == 2){
+                ctx.drawImage(donut, tileH * i, tileW * j);
+            }else if(board[i][j] == 1){
+                ctx.drawImage(hotdog, tileH * i, tileW * j);
+            }
+        }    
+    }
+}
+
+setInterval(renderScreen, 100);
+
+function printMousePos(event) {
+    lastClickedTileX = Math.floor(event.clientX / tileW);
+    lastClickedTileY = Math.floor(event.clientY / tileH);
+    if(event.clientX  < canvas.width && event.clientY < canvas.height){
+        board[lastClickedTileX][lastClickedTileY] = playerTurn ? 1 : 2;
+        playerTurn = !playerTurn;
+    }
+}
+
+document.addEventListener("click", printMousePos);
+    </script>
+</body>
+</html>
