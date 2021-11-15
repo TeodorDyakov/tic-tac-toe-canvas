@@ -31,13 +31,14 @@ var lastClickedTileY = -1;
 var tileW = canvas.width / 3;
 var tileH = canvas.height / 3;
 
-var player = 2;
-var ai = 1;
+var player = 1;
+var ai = 2;
 
 const STATE_PLAYER_TURN = 0;
 const STATE_GAME_OVER = 1;
 const STATE_AI_TURN = 2;
 var state = STATE_AI_TURN;
+var aiFirst = true;
 
 function isMovesLeft(board) {
         for (let i = 0; i < 3; i++)
@@ -173,20 +174,29 @@ var board = [
   [0, 0, 0]
 ];
 
-function reset(){
-    state = STATE_AI_TURN;
+function resetSecond(){
     board = [
   [0, 0, 0],
   [0, 0, 0],
-  [0, 0, 0]];
+  [0, 0, 0]
+];
+    aiFirst = true;
+    state = STATE_AI_TURN;
 }
 
-function resetSecond(){
-    reset();
+function reset(){
+    board = [
+  [0, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0]
+    ];
     state = STATE_PLAYER_TURN;
+    aiFirst = false;
     player = 2;
     ai = 1;
 }
+
+var turn = 0;
 
 function renderScreen(){
     ctx.lineWidth = 5;
@@ -218,9 +228,9 @@ function renderScreen(){
 
     for(let i = 0; i < 3; i++){
         for(let j = 0; j < 3; j++){
-            if(board[i][j] == 1){
+            if(board[i][j] == player){
                 ctx.drawImage(donut, tileH * i, tileW * j);
-            }else if(board[i][j] == 2){
+            }else if(board[i][j] == ai){
                 ctx.drawImage(hotdog, tileH * i, tileW * j);
             }
         }    
@@ -236,7 +246,7 @@ function printMousePos(event) {
         if(board[X][Y] != 0){
             return;
         }
-        board[X][Y] = 2;
+        board[X][Y] = player;
         if(isGameOver(board)){
             state = STATE_GAME_OVER;
         }else{
