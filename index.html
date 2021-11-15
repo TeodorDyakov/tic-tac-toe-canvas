@@ -26,8 +26,139 @@ var lastClickedTileX = -1;
 var lastClickedTileY = -1;
 
 var playerTurn = false;
-var tileW = canvas.width/3;
-var tileH = canvas.height/3;
+var tileW = canvas.width / 3;
+var tileH = canvas.height / 3;
+
+var player = 2;
+var ai = 1;
+
+function isMovesLeft(board) {
+        for (let i = 0; i < 3; i++)
+            for (let j = 0; j < 3; j++)
+                if (board[i][j] == 0)
+                    return true;
+        return false;
+    }
+
+    function isGameOver(b){
+        return !isMovesLeft(b) || evaluate(b) != 0;
+    }
+
+    function evaluate(b) {
+        for (let row = 0; row < 3; row++) {
+            if (b[row][0] == b[row][1] &&
+                    b[row][1] == b[row][2]) {
+                if (b[row][0] == ai)
+                    return +10;
+                else if (b[row][0] == player)
+                    return -10;
+            }
+        }
+
+        for (let col = 0; col < 3; col++) {
+            if (b[0][col] == b[1][col] &&
+                    b[1][col] == b[2][col]) {
+                if (b[0][col] == ai)
+                    return +10;
+
+                else if (b[0][col] == player)
+                    return -10;
+            }
+        }
+
+        // Checking for Diagonals for X or O victory.
+        if (b[0][0] == b[1][1] && b[1][1] == b[2][2]) {
+            if (b[0][0] == ai)
+                return +10;
+            else if (b[0][0] == player)
+                return -10;
+        }
+
+        if (b[0][2] == b[1][1] && b[1][1] == b[2][0]) {
+            if (b[0][2] == ai)
+                return +10;
+            else if (b[0][2] == player)
+                return -10;
+        }
+
+        return 0;
+    }
+
+    function minimax(board, depth, isMax, alpha, beta) {
+        let score = evaluate(board);
+
+        if (score == 10)
+            return score;
+
+        if (score == -10)
+            return score;
+
+        if (!isMovesLeft(board))
+            return 0;
+
+        let best = 0;
+        if (isMax) {
+            best = -1000;
+
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] == 0) {
+                        board[i][j] = ai;
+                        best = Math.max(best, minimax(board,
+                                depth + 1, false, alpha, beta));
+                        board[i][j] = 0;
+                        alpha = Math.max(alpha, best);
+                        if(beta <= alpha){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            best = 1000;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i][j] == 0) {
+                        board[i][j] = player;
+                        best = Math.min(best, minimax(board,
+                                depth + 1, true, alpha, beta));
+                        board[i][j] = 0;
+                        beta = Math.min(beta, best);
+                        if(beta <= alpha){
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
+    function findBestMove(board) {
+        let bestVal = -1000;
+        let bestMove = {"row" : 0, "col" : 0};
+        bestMove.row = -1;
+        bestMove.col = -1;
+
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (board[i][j] == 0) {
+                    board[i][j] = ai;
+                    let moveVal = minimax(board, 0, false, -10, 10);
+
+                    board[i][j] = 0;
+
+                    if (moveVal > bestVal) {
+                        bestMove.row = i;
+                        bestMove.col = j;
+                        bestVal = moveVal;
+                    }
+                }
+            }
+        }
+        return bestMove;
+    }
 
 var board = [
   [0, 0, 0],
@@ -45,6 +176,14 @@ function reset(){
 
 function renderScreen(){
     ctx.lineWidth = 5;
+
+    if(!playerTurn){
+        let aiMove = findBestMove(board);
+        console.log(aiMove);
+        board[aiMove.row][aiMove.col] = ai;
+        playerTurn = true;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for(let i = 1; i < 3; i++){
         ctx.beginPath();
@@ -62,9 +201,9 @@ function renderScreen(){
 
     for(let i = 0; i < 3; i++){
         for(let j = 0; j < 3; j++){
-            if(board[i][j] == 2){
+            if(board[i][j] == 1){
                 ctx.drawImage(donut, tileH * i, tileW * j);
-            }else if(board[i][j] == 1){
+            }else if(board[i][j] == 2){
                 ctx.drawImage(hotdog, tileH * i, tileW * j);
             }
         }    
@@ -74,10 +213,13 @@ function renderScreen(){
 setInterval(renderScreen, 100);
 
 function printMousePos(event) {
-    lastClickedTileX = Math.floor(event.clientX / tileW);
-    lastClickedTileY = Math.floor(event.clientY / tileH);
-    if(event.clientX  < canvas.width && event.clientY < canvas.height){
-        board[lastClickedTileX][lastClickedTileY] = playerTurn ? 1 : 2;
+    X = Math.floor(event.clientX / tileW);
+    Y = Math.floor(event.clientY / tileH);
+    if(event.clientX  < canvas.width && event.clientY < canvas.height && playerTurn){
+        if(board[X][Y] != 0){
+            return;
+        }
+        board[X][Y] = 2;
         playerTurn = !playerTurn;
     }
 }
