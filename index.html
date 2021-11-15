@@ -10,7 +10,10 @@
     <canvas id = "canvas" width = "600" height = "600">
         
     </canvas>
-    <button onclick="reset()"> New Game</button>
+    <button onclick="reset()"> New Game(first)</button>
+    
+    <button onclick="resetSecond()"> New Game(second)</button>
+
     <script>
 
 var canvas = document.getElementById("canvas");
@@ -25,12 +28,16 @@ hotdog.src = "hotdog.png";
 var lastClickedTileX = -1;
 var lastClickedTileY = -1;
 
-var playerTurn = false;
 var tileW = canvas.width / 3;
 var tileH = canvas.height / 3;
 
 var player = 2;
 var ai = 1;
+
+const STATE_PLAYER_TURN = 0;
+const STATE_GAME_OVER = 1;
+const STATE_AI_TURN = 2;
+var state = STATE_AI_TURN;
 
 function isMovesLeft(board) {
         for (let i = 0; i < 3; i++)
@@ -167,21 +174,31 @@ var board = [
 ];
 
 function reset(){
-    playerTurn = false;
+    state = STATE_AI_TURN;
     board = [
   [0, 0, 0],
   [0, 0, 0],
   [0, 0, 0]];
 }
 
+function resetSecond(){
+    reset();
+    state = STATE_PLAYER_TURN;
+    player = 2;
+    ai = 1;
+}
+
 function renderScreen(){
     ctx.lineWidth = 5;
 
-    if(!playerTurn){
+    if(state == STATE_AI_TURN){
         let aiMove = findBestMove(board);
         console.log(aiMove);
         board[aiMove.row][aiMove.col] = ai;
-        playerTurn = true;
+        if(isGameOver(board)){
+            state = STATE_GAME_OVER;
+        }else
+            state = STATE_PLAYER_TURN;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -215,12 +232,16 @@ setInterval(renderScreen, 100);
 function printMousePos(event) {
     X = Math.floor(event.clientX / tileW);
     Y = Math.floor(event.clientY / tileH);
-    if(event.clientX  < canvas.width && event.clientY < canvas.height && playerTurn){
+    if(event.clientX < canvas.width && event.clientY < canvas.height && state == STATE_PLAYER_TURN){
         if(board[X][Y] != 0){
             return;
         }
         board[X][Y] = 2;
-        playerTurn = !playerTurn;
+        if(isGameOver(board)){
+            state = STATE_GAME_OVER;
+        }else{
+            state = STATE_AI_TURN;
+        }
     }
 }
 
