@@ -96,10 +96,10 @@ function isMovesLeft(board) {
         let score = evaluate(board);
 
         if (score == 10)
-            return score;
+            return score - depth;
 
         if (score == -10)
-            return score;
+            return score + depth;
 
         if (!isMovesLeft(board))
             return 0;
