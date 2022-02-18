@@ -1,0 +1,112 @@
+<html>
+    <head>
+        
+    </head>
+    <body>
+        <div style = "display: none;">
+            <img id="ball"
+        src="ball.png"
+        width="100" height="100">
+
+        <img id="field"
+        src="field.jpg"
+        width="100" height="100">
+
+        </div>
+        <canvas id = "canvas" width = "1500"  height = "1000"></canvas>
+        <script>
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            
+            const image = document.getElementById('ball');
+            const field = document.getElementById('field');
+            
+            const ballR = 50; 
+            var gravity = 2;
+            
+            var ballCenter = [500, 100];
+            var ballVelocity = [0, 0];
+
+            function drawBall(posX, posY){
+                context.drawImage(image, posX - ballR, posY -ballR);
+            }
+
+            function drawBackground(){
+                context.drawImage(field, 0, 0);    
+            }
+
+            function dist(a, b){
+                return Math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]));
+            }
+
+            function substract(a, b){
+                return [a[0] - b[0], a[1] - b[1]];
+            }   
+
+            function mult(a, k){
+                a[0] *= k;
+                a[1] *= k;
+            }
+
+            function normalize(a){
+                let mag = a[0] * a[0] + a[1] * a[1];
+                mag = Math.sqrt(mag);
+                return [a[0]/mag, a[1]/mag];
+            }
+
+            function getClick(e){
+                var rect = canvas.getBoundingClientRect();
+                var posX = e.clientX - rect.left;
+                var posY = e.clientY - rect.top;
+                var clicked = [posX, posY];
+                const d = dist(clicked, ballCenter);
+
+                if(d < ballR){
+                    let dir = substract(ballCenter, clicked);
+                    // dir = normalize(dir);
+                    mult(dir, 1.5);
+                    console.log(dir);
+                    ballVelocity[0] += dir[0];
+                    ballVelocity[1] += dir[1];
+                }
+            }
+
+            document.addEventListener("click", getClick);
+
+            function render(){
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                ballVelocity[1] += gravity;
+                ballCenter[0] += ballVelocity[0];
+                ballCenter[1] += ballVelocity[1];
+
+                if(ballCenter[1] > 800){
+                    ballCenter[1] = 800;
+                    ballVelocity[1] *= -0.8;
+                    ballVelocity[0] *= 0.9;
+                }
+
+                if(ballCenter[1] < 0){
+                    ballCenter[1] = 0;
+                    ballVelocity[1] *= -0.8;
+                    ballVelocity[0] *= 0.9;
+                }
+
+                if(ballCenter[0] > canvas.width){
+                    ballCenter[0] = canvas.width;
+                    ballVelocity[0] *= -0.8;
+                }
+
+                if(ballCenter[0] < 0){
+                    ballCenter[0] = 0;
+                    ballVelocity[0] *= -0.9;
+                }
+                drawBackground(); 
+                drawBall(ballCenter[0], ballCenter[1]);
+
+                requestAnimationFrame(render);
+            }
+
+            render();
+        </script>
+    </body>
+</html>
